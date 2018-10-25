@@ -88,6 +88,26 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	}
 }
 
+func MyHandlerLong(x int, y string) {
+	fmt.Printf("LONG: x=%d, y=%s\n", x, y)
+}
+
+func MakeMyHandlerShort(fn func(x int, y string)) func(int) {
+	return func(x int) {
+		fn(x, "From Make short\n")
+	}
+}
+
+type HandlerList struct {
+	a func(int)
+	b func(int)
+}
+
+func (h *HandlerList) call() {
+	h.a(1)
+	h.b(2)
+}
+
 func main() {
 	appPort := "8080"
 
@@ -95,6 +115,8 @@ func main() {
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 
+	h := &HandlerList{a: MakeMyHandlerShort(MyHandlerLong), b: MakeMyHandlerShort(MyHandlerLong)}
+	h.call()
 	fmt.Printf("Listening on port %s\n", appPort)
 	log.Fatal(http.ListenAndServe(":"+appPort, nil))
 }
