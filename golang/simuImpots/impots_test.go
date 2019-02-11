@@ -24,23 +24,23 @@ func TestCalculeTranche(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name:         "Non Imposable",
-			args:         args{revenu: TranchesMock[0] / 2},
-			wantTranches: []float32{TranchesMock[0] / 2},
+			args:         args{revenu: TranchesMock[0].threshold / 2},
+			wantTranches: []float32{TranchesMock[0].threshold / 2},
 		},
 		{
 			name:         "Dans 1er tranche",
-			args:         args{revenu: TranchesMock[0] + (TranchesMock[1]-TranchesMock[0])/2},
-			wantTranches: []float32{TranchesMock[0], (TranchesMock[1] - TranchesMock[0]) / 2},
+			args:         args{revenu: TranchesMock[0].threshold + (TranchesMock[1].threshold-TranchesMock[0].threshold)/2},
+			wantTranches: []float32{TranchesMock[0].threshold, (TranchesMock[1].threshold - TranchesMock[0].threshold) / 2},
 		},
 		{
 			name:         "Dans 2ieme tranche",
-			args:         args{revenu: TranchesMock[1] + (TranchesMock[2]-TranchesMock[1])/2},
-			wantTranches: []float32{TranchesMock[0], TranchesMock[1] - TranchesMock[0], (TranchesMock[2] - TranchesMock[1]) / 2},
+			args:         args{revenu: TranchesMock[1].threshold + (TranchesMock[2].threshold-TranchesMock[1].threshold)/2},
+			wantTranches: []float32{TranchesMock[0].threshold, TranchesMock[1].threshold - TranchesMock[0].threshold, (TranchesMock[2].threshold - TranchesMock[1].threshold) / 2},
 		},
 		{
 			name:         "Au delà de la dernière tranche",
-			args:         args{revenu: TranchesMock[2] + 1000},
-			wantTranches: []float32{TranchesMock[0], TranchesMock[1] - TranchesMock[0], TranchesMock[2] - TranchesMock[1], 1000},
+			args:         args{revenu: TranchesMock[2].threshold + 1000},
+			wantTranches: []float32{TranchesMock[0].threshold, TranchesMock[1].threshold - TranchesMock[0].threshold, TranchesMock[2].threshold - TranchesMock[1].threshold, 1000},
 		},
 	}
 	for _, tt := range tests {
@@ -107,7 +107,7 @@ func TestResizeSlice(t *testing.T) {
 
 func TestBarême_Size(t *testing.T) {
 	type fields struct {
-		tranches []float32
+		outBoundTranche []OutBoundTranche
 	}
 	tests := []struct {
 		name   string
@@ -118,7 +118,7 @@ func TestBarême_Size(t *testing.T) {
 		{
 			name: "Taille Barême de 3 tranches imposables",
 			fields: fields{
-				tranches: MakeBarême(TrancheBuilderMock{}).tranches,
+				outBoundTranche: MakeBarême(TrancheBuilderMock{}).outBoundTranche,
 			},
 			want: 3,
 		},
@@ -126,37 +126,10 @@ func TestBarême_Size(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &Barême{
-				tranches: tt.fields.tranches,
+				outBoundTranche: tt.fields.outBoundTranche,
 			}
 			if got := b.Size(); got != tt.want {
 				t.Errorf("Barême.Size() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestMakeBarêmeError(t *testing.T) {
-	type args struct {
-		errorString string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		// TODO: Add test cases.
-		{
-			name: "Make an error",
-			args: args{
-				"Test Error",
-			},
-			want: "Test Error",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := MakeBarêmeError(tt.args.errorString); !reflect.DeepEqual(got.Error(), tt.want) {
-				t.Errorf("MakeBarêmeError() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -181,7 +154,7 @@ func TestBarême_Get(t *testing.T) {
 			args: args{
 				index: 0,
 			},
-			want: &Tranche{0, TranchesMock[0], false},
+			want: &Tranche{0, TranchesMock[0].threshold, false, TranchesMock[0].coefficient},
 		},
 		// TODO: Add test cases.
 		{
@@ -189,7 +162,7 @@ func TestBarême_Get(t *testing.T) {
 			args: args{
 				index: 1,
 			},
-			want: &Tranche{TranchesMock[0], TranchesMock[1], false},
+			want: &Tranche{TranchesMock[0].threshold, TranchesMock[1].threshold, false, TranchesMock[1].coefficient},
 		},
 		// TODO: Add test cases.
 		{
@@ -197,7 +170,7 @@ func TestBarême_Get(t *testing.T) {
 			args: args{
 				index: 2,
 			},
-			want: &Tranche{TranchesMock[1], TranchesMock[2], true},
+			want: &Tranche{TranchesMock[1].threshold, TranchesMock[2].threshold, true, TranchesMock[2].coefficient},
 		},
 	}
 	for _, tt := range tests {
@@ -205,52 +178,6 @@ func TestBarême_Get(t *testing.T) {
 			b := MakeBarême(TrancheBuilderMock{})
 			if got := b.Get(tt.args.index); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Barême.Get() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestBarême_TrancheComplete(t *testing.T) {
-	type fields struct {
-		tranches []float32
-	}
-	type args struct {
-		indiceTranche int
-	}
-	tests := []struct {
-		name        string
-		args        args
-		wantTranche float32
-		wantErr     bool
-	}{
-		// TODO: Add test cases.
-		{
-			name: "Première tranche",
-			args: args{
-				indiceTranche: 0,
-			},
-			wantTranche: TrancheBuilderMock{}.Build()[1] - TrancheBuilderMock{}.Build()[0],
-			wantErr:     false,
-		},
-		{
-			name: "Dernière tranche",
-			args: args{
-				indiceTranche: MakeBarême(TrancheBuilderMock{}).Size() - 1,
-			},
-			wantTranche: 0,
-			wantErr:     true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := MakeBarême(TrancheBuilderMock{})
-			gotTranche, err := b.TrancheComplete(tt.args.indiceTranche)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Barême.TrancheComplete() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if gotTranche != tt.wantTranche {
-				t.Errorf("Barême.TrancheComplete() = %v, want %v", gotTranche, tt.wantTranche)
 			}
 		})
 	}

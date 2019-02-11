@@ -10,6 +10,19 @@ type TrancheBuilderMock struct {
 	TrancheBuilder
 }
 
-func (t TrancheBuilderMock) Build() []float32 {
-	return []float32{TRANCHE_01, TRANCHE_02, TRANCHE_03}
+func (t TrancheBuilderMock) Build() []OutBoundTranche {
+	return []OutBoundTranche{
+		OutBoundTranche{
+			threshold:   TRANCHE_01,
+			coefficient: 0.05,
+		},
+		OutBoundTranche{
+			threshold:   TRANCHE_02,
+			coefficient: 0.1,
+		},
+		OutBoundTranche{
+			threshold:   TRANCHE_03,
+			coefficient: 0.30,
+		},
+	}
 }

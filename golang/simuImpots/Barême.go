@@ -1,36 +1,24 @@
 package main
 
+type OutBoundTranche struct {
+	threshold   float32
+	coefficient float32
+}
+
 type Barême struct {
-	tranches []float32
+	outBoundTranche []OutBoundTranche
 }
 
 type Tranche struct {
 	lowBound float32
 	upBound  float32
 	isLast   bool
+	coeff    float32
 }
 
-func (b *Barême) Error() string {
-	return "Erreur Barême"
-}
-
-type BarêmeError struct {
-	error
-	errorString string
-}
-
-func MakeBarêmeError(errorString string) *BarêmeError {
-	return &BarêmeError{
-		errorString: errorString,
-	}
-}
-func (br *BarêmeError) Error() string {
-	return br.errorString
-}
-
-func MakeBarême(tranches TrancheBuilder) (barême *Barême) {
+func MakeBarême(outBoundTranche TrancheBuilder) (barême *Barême) {
 	return &Barême{
-		tranches: tranches.Build(),
+		outBoundTranche: outBoundTranche.Build(),
 	}
 }
 
@@ -41,11 +29,13 @@ func (b *Barême) Get(index int) (tranche *Tranche) {
 	if index <= 0 {
 		lowBound = 0
 	} else {
-		lowBound = b.tranches[index-1]
+		lowBound = b.outBoundTranche[index-1].threshold
 	}
-	upbound := b.tranches[index]
+	upbound := b.outBoundTranche[index].threshold
 
 	var isLast bool
+
+	coeff := b.outBoundTranche[index].coefficient
 
 	if index == b.Size()-1 {
 		isLast = true
@@ -57,18 +47,10 @@ func (b *Barême) Get(index int) (tranche *Tranche) {
 		lowBound: lowBound,
 		upBound:  upbound,
 		isLast:   isLast,
+		coeff:    coeff,
 	}
 }
 
 func (b *Barême) Size() int {
-	return len(b.tranches)
-}
-
-func (b *Barême) TrancheComplete(indiceTranche int) (tranche float32, err error) {
-	indiceTrancheSuivante := indiceTranche + 1
-	if (indiceTrancheSuivante) == b.Size() {
-		return 0, MakeBarêmeError("Tranche Maximale")
-	} else {
-		return b.tranches[indiceTrancheSuivante] - b.tranches[indiceTranche], nil
-	}
+	return len(b.outBoundTranche)
 }
