@@ -163,6 +163,7 @@ func TestMakeBarêmeError(t *testing.T) {
 }
 
 func TestBarême_Get(t *testing.T) {
+	TranchesMock := TrancheBuilderMock{}.Build()
 	type fields struct {
 		tranches []float32
 	}
@@ -172,7 +173,7 @@ func TestBarême_Get(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want float32
+		want *Tranche
 	}{
 		// TODO: Add test cases.
 		{
@@ -180,13 +181,29 @@ func TestBarême_Get(t *testing.T) {
 			args: args{
 				index: 0,
 			},
-			want: TRANCHE_01,
+			want: &Tranche{0, TranchesMock[0], false},
+		},
+		// TODO: Add test cases.
+		{
+			name: "Deuxieme tranche",
+			args: args{
+				index: 1,
+			},
+			want: &Tranche{TranchesMock[0], TranchesMock[1], false},
+		},
+		// TODO: Add test cases.
+		{
+			name: "Derniere tranche",
+			args: args{
+				index: 2,
+			},
+			want: &Tranche{TranchesMock[1], TranchesMock[2], true},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := MakeBarême(TrancheBuilderMock{})
-			if got := b.Get(tt.args.index); got != tt.want {
+			if got := b.Get(tt.args.index); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Barême.Get() = %v, want %v", got, tt.want)
 			}
 		})
