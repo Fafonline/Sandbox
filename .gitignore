@@ -1,2 +1,4 @@
 golang/gowiki/wiki
 golang/gowiki/TestPage.txt
+*.txt
+*.exe

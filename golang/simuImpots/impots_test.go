@@ -25,22 +25,22 @@ func TestCalculeTranche(t *testing.T) {
 		{
 			name:         "Non Imposable",
 			args:         args{revenu: TranchesMock[0] / 2},
-			wantTranches: nil,
+			wantTranches: []float32{TranchesMock[0] / 2},
 		},
 		{
 			name:         "Dans 1er tranche",
 			args:         args{revenu: TranchesMock[0] + (TranchesMock[1]-TranchesMock[0])/2},
-			wantTranches: []float32{(TranchesMock[1] - TranchesMock[0]) / 2},
+			wantTranches: []float32{TranchesMock[0], (TranchesMock[1] - TranchesMock[0]) / 2},
 		},
 		{
 			name:         "Dans 2ieme tranche",
 			args:         args{revenu: TranchesMock[1] + (TranchesMock[2]-TranchesMock[1])/2},
-			wantTranches: []float32{TranchesMock[1] - TranchesMock[0], (TranchesMock[2] - TranchesMock[1]) / 2},
+			wantTranches: []float32{TranchesMock[0], TranchesMock[1] - TranchesMock[0], (TranchesMock[2] - TranchesMock[1]) / 2},
 		},
 		{
 			name:         "Au delà de la dernière tranche",
 			args:         args{revenu: TranchesMock[2] + 1000},
-			wantTranches: []float32{TranchesMock[1] - TranchesMock[0], TranchesMock[2] - TranchesMock[1], 1000},
+			wantTranches: []float32{TranchesMock[0], TranchesMock[1] - TranchesMock[0], TranchesMock[2] - TranchesMock[1], 1000},
 		},
 	}
 	for _, tt := range tests {
